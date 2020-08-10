@@ -23,24 +23,24 @@ if(!isEmpty(customerTickets)) {
 	
 	// Find the latest ticket.
 	latestTicket = null;
-	latestTicketDate = toDate(0);
+	latestTicketTime = toTime(0);
 	for each ticket in customerTickets {
 		
-		// Get ticket closed time and format into date object.
-		closedDateString =  ticket.get("closedTime");
-		closedDateString = closedDateString.replaceAll("T", " ");
-		closedDateString = closedDateString.replaceAll("Z", " ");
-		closedDate = closedDateString.toDateTime();
+		// Get ticket created time and format into date object.
+		createdTimeString =  ticket.get("createdTime");
+		createdTimeString = createdTimeString.replaceAll("T", " ");
+		createdTimeString = createdTimeString.replaceAll("Z", " ");
+		createdTime = createdTimeString.toDateTime();
 
 		// If ticket is the latest ticket, then assign a latest ticket date and ticket list position.
-		if(closedDate > latestTicketDate) {
-			latestTicketDate = closedDate;
+		if(createdTime > latestTicketTime) {
+			latestTicketTime = createdTime;
 			latestTicket = ticket;
 		}
 	}
-	
-  // Update Contact with URL to latest customer Ticker in Zoho Desk.
+	latestTicketUrl = latestTicket.get("webUrl");
 	updateContactMap = Map();
-	updateContactMap.put("Latest_Ticket_URL", latestTicket.get("webUrl"));
+	updateContactMap.put("Latest_Ticket_URL", latestTicketUrl);
 	updateContact = zoho.crm.updateRecord("Contacts", CONTACT_ID, updateContactMap);
+	info updateContact;
 }
