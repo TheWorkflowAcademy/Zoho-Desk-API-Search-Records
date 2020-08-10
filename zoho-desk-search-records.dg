@@ -1,0 +1,46 @@
+/*
+
+  Parameters: 
+    [CONTACT_ID : Int]  
+    
+*/
+
+// Get Customer Record
+customer = zoho.crm.getRecordById("Contacts", CONTACT_ID);
+email = customer.get("Email");
+
+// Search for customer tickets by email via Zoho Desk API.
+customerTicketsResponse = invokeurl [
+	url: "https://desk.zoho.com/api/v1/tickets/search?email=" + email
+	type: GET
+	connection: "zohodesk"
+];
+customerTickets = customerTicketsResponse.get("data");
+customerTickets = customerTickets.toList();
+
+// Continue only if a ticket exists for client.
+if(!isEmpty(customerTickets)) {
+	
+	// Find the latest ticket.
+	latestTicket = null;
+	latestTicketDate = toDate(0);
+	for each ticket in customerTickets {
+		
+		// Get ticket closed time and format into date object.
+		closedDateString =  ticket.get("closedTime");
+		closedDateString = closedDateString.replaceAll("T", " ");
+		closedDateString = closedDateString.replaceAll("Z", " ");
+		closedDate = closedDateString.toDateTime();
+
+		// If ticket is the latest ticket, then assign a latest ticket date and ticket list position.
+		if(closedDate > latestTicketDate) {
+			latestTicketDate = closedDate;
+			latestTicket = ticket;
+		}
+	}
+	
+  // Update Contact with URL to latest customer Ticker in Zoho Desk.
+	updateContactMap = Map();
+	updateContactMap.put("Latest_Ticket_URL", latestTicket.get("webUrl"));
+	updateContact = zoho.crm.updateRecord("Contacts", CONTACT_ID, updateContactMap);
+}
